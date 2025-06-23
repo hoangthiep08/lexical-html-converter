@@ -1,0 +1,48 @@
+{
+  "name": "lexical-html-converter",
+  "version": "1.1.0",
+  "description": "Convert Lexical JSON to HTML with embedded CSS for web applications",
+  "main": "src/lib.js",
+  "files": [
+    "src/lib.js",
+    "src/convert.js",
+    "src/styles/lexical-content.css",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "prepublishOnly": "npm run build",
+    "publish-patch": "npm version patch && npm publish",
+    "publish-minor": "npm version minor && npm publish",
+    "publish-major": "npm version major && npm publish"
+  },
+  "keywords": [
+    "lexical",
+    "html",
+    "converter",
+    "rich-text",
+    "editor"
+  ],
+  "author": "Hoang Thiep",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hoangthiep08/lexical-html-converter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hoangthiep08/lexical-html-converter/issues"
+  },
+  "homepage": "https://github.com/hoangthiep08/lexical-html-converter#readme",
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

@@ -1,0 +1,61 @@
+# Development files
+*.md
+!README.md
+!LICENSE
+
+# Documentation (keep for development, exclude from npm)
+docs/
+
+# Test files
+test-*
+*-test.*
+*.test.*
+demo-*
+example-*
+quick-demo.*
+interactive-demo.*
+
+# Build artifacts
+dist/
+build/
+coverage/
+
+# TypeScript files (keep only compiled JS)
+src/index.ts
+src/types/
+src/converters/
+src/utils/
+tsconfig.json
+
+# Browser version (not needed for npm)
+src/browser-lib.js
+
+# Output files
+*-output.html
+*-converted.html
+*-styles.css
+*-html-only.html
+*-result.html
+format-lexical-*
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git
+.git/
+.gitignore
