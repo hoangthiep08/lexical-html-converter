@@ -140,6 +140,17 @@ function toggleCodeFold(codeId) {
 }
 
 /**
+ * Safely escape HTML to prevent XSS
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+/**
  * Enhance existing code block with copy/fold functionality
  * @param {Element} preElement - The pre element to enhance
  * @param {number} index - Index for unique ID
@@ -148,38 +159,61 @@ function enhanceCodeBlock(preElement, index) {
   const codeId = `code-${index}-${Math.random().toString(36).substr(2, 6)}`;
   const codeElement = preElement.querySelector('code');
   
-  // Get language from class or data attribute
-  const language = preElement.dataset.language || 
-                   (codeElement.className.match(/language-(\w+)/) || ['', 'text'])[1];
+  // Get language from class or data attribute and sanitize it
+  const rawLanguage = preElement.dataset.language || 
+                      (codeElement.className.match(/language-(\w+)/) || ['', 'text'])[1];
+  // Sanitize language: only allow alphanumeric characters
+  const language = rawLanguage.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || 'text';
   
   // Create wrapper
   const wrapper = document.createElement('div');
   wrapper.className = 'enhanced-code-block';
   wrapper.dataset.codeId = codeId;
   
-  // Create header with controls
+  // Create header with controls - using safe DOM methods
   const header = document.createElement('div');
   header.className = 'code-header-bar';
-  header.innerHTML = `
-    <div class="code-language">${language.toUpperCase()}</div>
-    <div class="code-controls">
-      <button class="code-btn copy-btn" onclick="copyCode('${codeId}')">
-        Copy
-      </button>
-      <button class="code-btn fold-btn" onclick="toggleCodeFold('${codeId}')">
-        Fold
-      </button>
-    </div>
-  `;
   
-  // Create collapsed header
+  // Create language label
+  const languageDiv = document.createElement('div');
+  languageDiv.className = 'code-language';
+  languageDiv.textContent = language.toUpperCase();
+  
+  // Create controls container
+  const controlsDiv = document.createElement('div');
+  controlsDiv.className = 'code-controls';
+  
+  // Create copy button
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'code-btn copy-btn';
+  copyBtn.textContent = 'Copy';
+  copyBtn.onclick = () => copyCode(codeId);
+  
+  // Create fold button
+  const foldBtn = document.createElement('button');
+  foldBtn.className = 'code-btn fold-btn';
+  foldBtn.textContent = 'Fold';
+  foldBtn.onclick = () => toggleCodeFold(codeId);
+  
+  // Assemble header
+  controlsDiv.appendChild(copyBtn);
+  controlsDiv.appendChild(foldBtn);
+  header.appendChild(languageDiv);
+  header.appendChild(controlsDiv);
+  
+  // Create collapsed header - using safe DOM methods
   const collapsedHeader = document.createElement('div');
   collapsedHeader.className = 'code-header-collapsed';
   collapsedHeader.style.display = 'none';
-  collapsedHeader.innerHTML = `
-    <span class="expand-icon">▶</span>
-    ${language.toUpperCase()} - Click to expand
-  `;
+  
+  const expandIcon = document.createElement('span');
+  expandIcon.className = 'expand-icon';
+  expandIcon.textContent = '▶';
+  
+  const expandText = document.createTextNode(` ${language.toUpperCase()} - Click to expand`);
+  
+  collapsedHeader.appendChild(expandIcon);
+  collapsedHeader.appendChild(expandText);
   collapsedHeader.onclick = () => toggleCodeFold(codeId);
   
   // Set ID on code element
@@ -242,39 +276,6 @@ if (document.readyState === 'loading') {
 }
 
 /**
- * Download SVG functionality
- * @param {string} svgElementId - ID of the SVG element
- */
-function downloadSVG(svgElementId) {
-    const svgElement = document.getElementById(svgElementId);
-    
-    if (!svgElement) {
-        return;
-    }
-    
-    try {
-        // Get the SVG content
-        const svgContent = svgElement.innerHTML;
-        
-        // Create blob and download
-        const blob = new Blob([svgContent], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `excalidraw-${Date.now()}.svg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        URL.revokeObjectURL(url);
-        
-    } catch (error) {
-        // Silent fail
-    }
-}
-
-/**
  * Export Excalidraw as SVG
  * @param {string} excalidrawId - ID of the Excalidraw container
  */
@@ -301,8 +302,6 @@ function exportExcalidrawSVG(excalidrawId) {
     exportBtn.disabled = true;
     
     try {
-      const rawData = dataElement.textContent;
-      
       // Basic SVG generation - simplified version
       let svgContent = `
         <svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
