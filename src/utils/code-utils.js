@@ -1,11 +1,11 @@
 /**
  * JavaScript utilities for code block functionality
- * Copy và Fold/Unfold code blocks
+ * Copy and Fold/Unfold code blocks
  */
 
 /**
  * Copy code content to clipboard
- * @param {string} codeId - ID của code element
+ * @param {string} codeId - ID of the code element
  */
 function copyCode(codeId) {
   try {
@@ -15,7 +15,7 @@ function copyCode(codeId) {
       return;
     }
     
-    // Lấy text content từ code element
+    // Get text content from code element
     const codeText = codeElement.textContent || codeElement.innerText;
     
     // Copy to clipboard using modern API
@@ -103,7 +103,7 @@ function showCopyFeedback(codeId, success) {
 
 /**
  * Toggle code block fold/unfold
- * @param {string} codeId - ID của code element
+ * @param {string} codeId - ID of the code element
  */
 function toggleCodeFold(codeId) {
   try {
@@ -243,7 +243,7 @@ if (document.readyState === 'loading') {
 
 /**
  * Download SVG functionality
- * @param {string} svgElementId - ID của SVG element
+ * @param {string} svgElementId - ID of the SVG element
  */
 function downloadSVG(svgElementId) {
     const svgElement = document.getElementById(svgElementId);
@@ -276,7 +276,7 @@ function downloadSVG(svgElementId) {
 
 /**
  * Export Excalidraw as SVG
- * @param {string} excalidrawId - ID của Excalidraw container
+ * @param {string} excalidrawId - ID of the Excalidraw container
  */
 function exportExcalidrawSVG(excalidrawId) {
   try {
