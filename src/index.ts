@@ -6,24 +6,30 @@ import { join } from 'path';
 export interface ConversionResult {
   html: string;
   css: string;
+  javascript: string;
   htmlWithCSS: string; // HTML đã bao gồm CSS inline
+  htmlWithCSSAndJS: string; // HTML đã bao gồm CSS và JavaScript
 }
 
 // Interface cho options
 export interface ConversionOptions {
   includeCSS?: boolean; // Mặc định true
+  includeJS?: boolean;  // Mặc định true - include JavaScript cho code blocks
   cssPrefix?: string;   // Prefix cho CSS classes, mặc định 'lexical-content'
   minifyCSS?: boolean;  // Minify CSS, mặc định false
+  minifyJS?: boolean;   // Minify JavaScript, mặc định false
 }
 
 // Class chính của thư viện
 export class LexicalConverter {
   private converter: HtmlConverter;
   private cssContent: string;
+  private jsContent: string;
 
   constructor() {
     this.converter = new HtmlConverter();
     this.cssContent = this.loadCSS();
+    this.jsContent = this.loadJS();
   }
 
   /**
@@ -37,6 +43,94 @@ export class LexicalConverter {
       // Fallback CSS nếu không tìm thấy file
       return this.getDefaultCSS();
     }
+  }
+
+  /**
+   * Load JavaScript content từ file
+   */
+  private loadJS(): string {
+    try {
+      const jsPath = join(__dirname, '../src/utils/code-utils.js');
+      return readFileSync(jsPath, 'utf8');
+    } catch (error) {
+      // Fallback JavaScript nếu không tìm thấy file
+      return this.getDefaultJS();
+    }
+  }
+
+  /**
+   * JavaScript mặc định nếu không load được từ file
+   */
+  private getDefaultJS(): string {
+    return `
+// Lexical Code Block Utilities
+function copyCode(codeId) {
+  try {
+    const codeElement = document.getElementById(codeId);
+    if (!codeElement) return;
+    const codeText = codeElement.textContent || codeElement.innerText;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(codeText).then(() => {
+        showCopyFeedback(codeId, true);
+      }).catch(() => {
+        fallbackCopyTextToClipboard(codeText, codeId);
+      });
+    } else {
+      fallbackCopyTextToClipboard(codeText, codeId);
+    }
+  } catch (error) {
+    console.error('Error copying code:', error);
+  }
+}
+
+function fallbackCopyTextToClipboard(text, codeId) {
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.opacity = '0';
+  document.body.appendChild(textArea);
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    showCopyFeedback(codeId, true);
+  } catch (err) {
+    showCopyFeedback(codeId, false);
+  }
+  document.body.removeChild(textArea);
+}
+
+function showCopyFeedback(codeId, success) {
+  const blockElement = document.getElementById('block-' + codeId);
+  if (!blockElement) return;
+  const copyBtn = blockElement.querySelector('.copy-btn');
+  if (!copyBtn) return;
+  const originalText = copyBtn.textContent;
+  copyBtn.textContent = success ? 'Copied!' : 'Failed';
+  copyBtn.classList.add(success ? 'copied' : 'failed');
+  setTimeout(() => {
+    copyBtn.textContent = originalText;
+    copyBtn.classList.remove('copied', 'failed');
+  }, 2000);
+}
+
+function toggleCodeFold(codeId) {
+  try {
+    const blockElement = document.getElementById('block-' + codeId);
+    if (!blockElement) return;
+    const foldBtn = blockElement.querySelector('.fold-btn');
+    const isCollapsed = blockElement.classList.contains('collapsed');
+    if (isCollapsed) {
+      blockElement.classList.remove('collapsed');
+      if (foldBtn) foldBtn.textContent = 'Fold';
+    } else {
+      blockElement.classList.add('collapsed');
+      if (foldBtn) foldBtn.textContent = 'Unfold';
+    }
+  } catch (error) {
+    console.error('Error toggling code fold:', error);
+  }
+}
+`;
   }
 
   /**
@@ -116,8 +210,10 @@ export class LexicalConverter {
   public convert(lexicalData: any, options: ConversionOptions = {}): ConversionResult {
     const {
       includeCSS = true,
+      includeJS = true,
       cssPrefix = 'lexical-content',
-      minifyCSS = false
+      minifyCSS = false,
+      minifyJS = false
     } = options;
 
     // Chuyển đổi JSON thành HTML
@@ -137,15 +233,34 @@ export class LexicalConverter {
       css = this.minifyCSS(css);
     }
 
+    // Xử lý JavaScript
+    let javascript = this.jsContent;
+    
+    // Minify JavaScript nếu cần
+    if (minifyJS) {
+      javascript = this.minifyJS(javascript);
+    }
+
     // Tạo HTML với CSS inline
     const htmlWithCSS = includeCSS ? 
       `<style>${css}</style><div class="${cssPrefix}">${htmlContent}</div>` :
       `<div class="${cssPrefix}">${htmlContent}</div>`;
 
+    // Tạo HTML với CSS và JavaScript
+    const htmlWithCSSAndJS = includeCSS && includeJS ?
+      `<style>${css}</style><div class="${cssPrefix}">${htmlContent}</div><script>${javascript}</script>` :
+      includeCSS ?
+        `<style>${css}</style><div class="${cssPrefix}">${htmlContent}</div>` :
+        includeJS ?
+          `<div class="${cssPrefix}">${htmlContent}</div><script>${javascript}</script>` :
+          `<div class="${cssPrefix}">${htmlContent}</div>`;
+
     return {
       html: htmlContent,
       css: css,
-      htmlWithCSS: htmlWithCSS
+      javascript: javascript,
+      htmlWithCSS: htmlWithCSS,
+      htmlWithCSSAndJS: htmlWithCSSAndJS
     };
   }
 
@@ -162,6 +277,21 @@ export class LexicalConverter {
       .replace(/\s*,\s*/g, ',')         // Xóa spaces xung quanh ,
       .replace(/\s*:\s*/g, ':')         // Xóa spaces xung quanh :
       .replace(/\s*;\s*/g, ';')         // Xóa spaces xung quanh ;
+      .trim();
+  }
+
+  /**
+   * Minify JavaScript đơn giản
+   */
+  private minifyJS(js: string): string {
+    return js
+      .replace(/\/\*[\s\S]*?\*\//g, '') // Xóa block comments
+      .replace(/\/\/.*$/gm, '')         // Xóa line comments
+      .replace(/\s+/g, ' ')             // Thay nhiều spaces thành 1
+      .replace(/\s*{\s*/g, '{')         // Xóa spaces xung quanh {}
+      .replace(/\s*}\s*/g, '}')
+      .replace(/\s*;\s*/g, ';')         // Xóa spaces xung quanh ;
+      .replace(/\s*,\s*/g, ',')         // Xóa spaces xung quanh ,
       .trim();
   }
 
