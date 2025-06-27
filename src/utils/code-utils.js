@@ -140,17 +140,6 @@ function toggleCodeFold(codeId) {
 }
 
 /**
- * Safely escape HTML to prevent XSS
- * @param {string} text - Text to escape
- * @returns {string} Escaped text
- */
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-/**
  * Enhance existing code block with copy/fold functionality
  * @param {Element} preElement - The pre element to enhance
  * @param {number} index - Index for unique ID
