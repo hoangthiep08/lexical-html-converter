@@ -375,7 +375,6 @@ export class HtmlConverter extends BaseConverter {
     
     // Auto-render SVG from Excalidraw data
     let svgContent = '';
-    let drawingInfo = { width: 400, height: 300, elements: 0 };
     
     try {
       if (data) {
@@ -430,8 +429,6 @@ export class HtmlConverter extends BaseConverter {
             height = Math.max(300, calcMaxY - calcMinY + padding * 2);
             viewBox = `${minX} ${minY} ${width} ${height}`;
           }
-          
-          drawingInfo = { width, height, elements: elements.length };
           
           // Generate SVG elements
           let svgElements = '';
