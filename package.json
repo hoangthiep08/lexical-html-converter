@@ -1,6 +1,6 @@
 {
   "name": "lexical-html-converter",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Convert Lexical JSON to HTML with embedded CSS for web applications",
   "main": "src/lib.js",
   "files": [
@@ -11,7 +11,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && cp -r src/styles dist/ && cp src/utils/*.js dist/utils/ 2>/dev/null || true",
     "dev": "tsc --watch",
     "test": "jest",
     "prepublishOnly": "npm run build",

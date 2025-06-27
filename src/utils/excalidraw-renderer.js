@@ -5,10 +5,10 @@ function renderExcalidrawToSVG(excalidrawData) {
     const elements = data.elements || [];
     
     if (elements.length === 0) {
-      return '<div class="excalidraw-empty">Không có nội dung vẽ</div>';
+      return '<div class="excalidraw-empty">No drawing content</div>';
     }
 
-    // Tính toán bounds từ tất cả elements
+    // Calculate bounds from all elements
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     
     elements.forEach(element => {
@@ -21,7 +21,7 @@ function renderExcalidrawToSVG(excalidrawData) {
       maxY = Math.max(maxY, y + (height || 0));
     });
 
-    // Thêm padding nhỏ
+    // Add small padding
     const padding = 10;
     minX -= padding;
     minY -= padding;
@@ -31,14 +31,14 @@ function renderExcalidrawToSVG(excalidrawData) {
     const svgWidth = maxX - minX;
     const svgHeight = maxY - minY;
     
-    // Giới hạn kích thước tối đa để không quá lớn
+    // Limit maximum size to prevent oversized images
     const maxDisplayWidth = 600;
     const maxDisplayHeight = 400;
     
     let displayWidth = svgWidth;
     let displayHeight = svgHeight;
     
-    // Scale down nếu quá lớn
+    // Scale down if too large
     if (svgWidth > maxDisplayWidth || svgHeight > maxDisplayHeight) {
       const scaleX = maxDisplayWidth / svgWidth;
       const scaleY = maxDisplayHeight / svgHeight;
@@ -139,8 +139,8 @@ function renderExcalidrawToSVG(excalidrawData) {
       </div>`;
     
   } catch (error) {
-    console.error('Lỗi khi render Excalidraw:', error);
-    return '<div class="excalidraw-error">Không thể hiển thị bản vẽ</div>';
+    console.error('Error rendering Excalidraw:', error);
+    return '<div class="excalidraw-error">Unable to display drawing</div>';
   }
 }
 
